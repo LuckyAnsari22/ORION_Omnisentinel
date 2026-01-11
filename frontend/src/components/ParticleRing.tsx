@@ -21,7 +21,8 @@ export const ParticleRing = ({
     const dummy = new THREE.Object3D();
 
     // Initialize particles
-    const particles = useRef(() => {
+    const particles = useRef<any[]>(null);
+    if (!particles.current) {
         const temp = [];
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2;
@@ -33,13 +34,13 @@ export const ParticleRing = ({
                 scale: Math.random() * 0.5 + 0.5
             });
         }
-        return temp;
-    });
+        particles.current = temp;
+    }
 
-    useFrame((state) => {
+    useFrame(() => {
         if (!meshRef.current) return;
 
-        particles.current().forEach((particle, i) => {
+        particles.current!.forEach((particle, i) => {
             // Update angle
             particle.angle += particle.speed * 0.01;
 

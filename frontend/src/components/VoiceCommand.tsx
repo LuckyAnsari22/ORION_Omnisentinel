@@ -47,16 +47,16 @@ export const VoiceCommand = () => {
             });
 
             // Add commands
-            annyang.addCommands(commands);
+            (annyang as any).addCommands(commands);
 
             // Start listening
-            annyang.start({ autoRestart: true, continuous: false });
+            (annyang as any).start({ autoRestart: true, continuous: false });
             setVoiceEnabled(true);
             setListening(true);
 
             // Cleanup
             return () => {
-                annyang.abort();
+                (annyang as any).abort();
                 setVoiceEnabled(false);
             };
         } else {

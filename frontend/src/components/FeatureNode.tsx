@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useAppStore } from '../store/appStore';
-import { ANIMATION_CONFIG } from '../utils/constants';
 
 interface FeatureNodeProps {
     systemId: string;
@@ -62,12 +61,11 @@ export const FeatureNode = ({
                     e.stopPropagation();
                     onClick();
                 }}
-                onPointerOver={(e) => {
-                    e.stopPropagation();
+                onPointerOver={() => {
                     document.body.style.cursor = 'pointer';
                     setHovered(true);
                 }}
-                onPointerOut={(e) => {
+                onPointerOut={() => {
                     document.body.style.cursor = 'auto';
                     setHovered(false);
                 }}

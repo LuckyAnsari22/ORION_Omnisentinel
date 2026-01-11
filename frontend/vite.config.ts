@@ -1,9 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import vitePluginString from 'vite-plugin-string'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    vitePluginString()
+  ],
 
   server: {
     port: 5174,
@@ -26,17 +30,7 @@ export default defineConfig({
 
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'three': ['three'],
-          'react-three': ['@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-        },
-      },
-    },
+    sourcemap: false
   },
 
   optimizeDeps: {
