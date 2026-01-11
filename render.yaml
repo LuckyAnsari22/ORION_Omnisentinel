@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: guardian-ai-backend
+    runtime: docker
+    repo: https://github.com/LuckyAnsari22/ai-assistant-platform
+    branch: main
+    rootDir: guardian-ai
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5001
+    healthCheckPath: /
