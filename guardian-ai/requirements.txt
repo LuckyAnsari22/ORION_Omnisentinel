@@ -1,0 +1,9 @@
+numpy
+Pillow
+PyYAML
+flask
+flask-cors
+opencv-python
+firebase-admin
+requests
+python-dotenv

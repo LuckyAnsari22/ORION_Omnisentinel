@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+@theme {
+  /* High-contrast colors for accessibility */
+  --color-primary: #FBBF24;
+  --color-primary-foreground: #1E3A8A;
+  --color-secondary: #1E3A8A;
+  --color-success: #10B981;
+  --color-warning: #F97316;
+  --color-error: #EF4444;
+
+  /* Neutral palette - high contrast */
+  --color-background: #FFFFFF;
+  --color-text: #000000;
+  --color-text-secondary: #1F2937;
+  --color-border: #000000;
+  --color-divider: #D1D5DB;
+
+  /* Typography - accessibility focused */
+  --font-sans: Inter, Roboto, sans-serif;
+  --font-size-base: 18px;
+  --line-height-relaxed: 1.75;
+}
+
+/* Global accessibility-first styles */
+@layer base {
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-black font-sans text-lg leading-relaxed;
+    font-size: 18px;
+    line-height: 1.75;
+  }
+
+  /* Focus states are critical for accessibility */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply outline-offset-2;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-4 outline-blue-900;
+  }
+
+  /* Minimum touch target size: 48x48px */
+  button,
+  [role="button"],
+  a[role="button"] {
+    @apply min-w-12 min-h-12;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold text-black;
+  }
+
+  h1 {
+    @apply text-4xl mb-6;
+  }
+
+  h2 {
+    @apply text-3xl mb-4;
+  }
+
+  h3 {
+    @apply text-2xl mb-3;
+  }
+
+  p,
+  li,
+  span {
+    @apply text-lg;
+  }
+
+  /* High contrast links */
+  a {
+    @apply text-blue-900 underline font-bold hover:bg-yellow-400;
+  }
+}
+
+/* Custom utilities and animations */
+@layer utilities {
+  .text-primary-foreground {
+    color: var(--color-primary-foreground);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .sr-only-focusable:active,
+  .sr-only-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  /* High contrast mode utilities */
+  .high-contrast {
+    @apply border-2 border-black;
+  }
+
+  .button-accessible {
+    @apply min-h-12 min-w-12 px-6 py-3 rounded-lg font-bold text-lg bg-blue-900 text-yellow-400 hover:bg-blue-800 focus-visible:outline-4 focus-visible:outline-blue-900 active:scale-95 transition-transform;
+  }
+
+  .button-secondary {
+    @apply min-h-12 min-w-12 px-6 py-3 rounded-lg font-bold text-lg bg-white text-blue-900 border-2 border-blue-900 hover:bg-blue-50 focus-visible:outline-4 focus-visible:outline-blue-900;
+  }
+
+  .input-accessible {
+    @apply w-full px-4 py-3 text-lg rounded-lg border-2 border-black focus-visible:outline-4 focus-visible:outline-blue-900;
+  }
+
+  .section-spacing {
+    @apply px-6 py-8 sm:px-12 sm:py-12;
+  }
+}
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@layer utilities {
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+  }
+}
+
+/* Accessibility focus styles */
+:focus-visible {
+  outline: none;
+  --tw-ring-color: var(--color-primary);
+  --tw-ring-width: 4px;
+  --tw-ring-offset-width: 2px;
+  box-shadow: 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color), 0 0 0 calc(var(--tw-ring-width) + var(--tw-ring-offset-width)) var(--tw-ring-color);
+}
