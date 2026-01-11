@@ -10,17 +10,54 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const handleGoogleSignIn = async () => {
-        // Bypass Auth for Demo
+        // DEMO BYPASS: Auto-login simulation
+        setLoading(true);
+        console.log("DEMO MODE: Simulating Google Auth...");
+
+        // 1. Simulate Delay
+        await new Promise(r => setTimeout(r, 1500));
+
+        // 2. Set fake user session
+        localStorage.setItem('demo_user_name', 'Admin Officer');
+        localStorage.setItem('demo_user_email', 'admin@falldetector.ai');
+
         navigate('/dashboard');
+        return;
+
+        /* FIREBASE DISABLED FOR DEMO
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Error signing in with Google", error);
+            alert("Failed to sign in. Check console for details.");
+        }
+        */
     };
 
     const handleEmailSignIn = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate network delay then bypass
+        // DEMO BYPASS
         setTimeout(() => {
+            localStorage.setItem('demo_user_name', 'System Admin');
+            localStorage.setItem('demo_user_email', email || 'admin@falldetector.ai');
             navigate('/dashboard');
-        }, 1000);
+        }, 1500);
+        return;
+
+        /* FIREBASE DISABLED
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            navigate('/dashboard');
+        } catch (error) {
+            console.error("Error signing in with Email", error);
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
+        */
     };
 
     return (
@@ -44,12 +81,12 @@ const Login = () => {
                             SYSTEM V2.0 // ONLINE
                         </div>
                         <h1 className="text-7xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary to-blue-400 filter drop-shadow-[0_0_25px_rgba(6,182,212,0.4)]">
-                            FALL<br />DETECTOR
+                            GUARDIAN AI
                         </h1>
                         <p className="text-xl text-slate-400 max-w-xl leading-relaxed">
-                            Advanced Autonomous Safety Grid.
+                            OmniSentinel Advanced Safety Grid.
                             <br />
-                            <span className="text-slate-500 text-lg">Powered by Computer Vision & Real-time Neural Logic.</span>
+                            <span className="text-slate-500 text-lg">Powered by Team Outliers Core Intelligence.</span>
                         </p>
                     </div>
 
@@ -147,7 +184,8 @@ const Login = () => {
 
                             <button
                                 onClick={handleGoogleSignIn}
-                                className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white py-3 rounded-lg transition-colors font-medium border border-white/10 group"
+                                disabled={loading}
+                                className={`w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white py-3 rounded-lg transition-colors font-medium border border-white/10 group ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <svg className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" viewBox="0 0 24 24"><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.333.533 12S5.867 24 12.48 24c3.44 0 6.027-1.133 8.133-2.907 2.147-1.787 2.813-4.427 2.813-6.507 0-.587-.04-1.28-.107-1.667H12.48z" /></svg>
                                 Google Auth

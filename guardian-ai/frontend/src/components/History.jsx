@@ -15,7 +15,7 @@ const History = () => {
 
     const fetchData = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/history');
+            const res = await fetch('/api/history');
             const data = await res.json();
 
             if (Array.isArray(data)) {
@@ -46,7 +46,7 @@ const History = () => {
                             onClick={async () => {
                                 if (confirm("Are you sure you want to delete ALL history logs? This cannot be undone.")) {
                                     try {
-                                        await fetch('http://localhost:5001/api/history', { method: 'DELETE' });
+                                        await fetch('/api/history', { method: 'DELETE' });
                                         fetchData();
                                     } catch (e) {
                                         console.error(e);

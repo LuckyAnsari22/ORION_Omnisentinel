@@ -72,6 +72,26 @@ def reset_alert():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/camera/start', methods=['POST'])
+def camera_start():
+    try:
+        add_system_log("Camera Re-acquire Requested", "info")
+        camera_service.start_camera()
+        return jsonify({"status": "Camera Started"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/camera/stop', methods=['POST'])
+def camera_stop():
+    try:
+        add_system_log("Camera Release Requested", "info")
+        if camera_service.camera:
+            camera_service.camera.release()
+            camera_service.camera = None
+        return jsonify({"status": "Camera Stopped"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/get_settings', methods=['GET'])
 def get_settings():
     # Only return safe data, mask passwords

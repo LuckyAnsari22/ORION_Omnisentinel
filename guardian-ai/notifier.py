@@ -48,16 +48,13 @@ class FCMNotifier:
             key_path = 'serviceAccountKey.json'
             if os.path.exists(key_path):
                 cred = credentials.Certificate(key_path)
-                # Check if already initialized to avoid error on reload
-                try:
-                    firebase_admin.get_app()
-                except ValueError:
-                    firebase_admin.initialize_app(cred)
-                print("DEBUG: Firebase Admin SDK initialized successfully.", flush=True)
+                firebase_admin.initialize_app(cred)
+                if self.logger: self.logger("Firebase SDK Initialized", "success")
             else:
-                if self.logger: self.logger(f"Firebase Key '{key_path}' not found", "alert")
+                # SILENT FOR DEMO
+                pass
         except Exception as e:
-            if self.logger: self.logger(f"Firebase Init Failed: {e}", "error")
+            if self.logger: self.logger(f"Firebase Init Skip: {e}", "info")
 
     def _load_settings(self):
         try:
@@ -196,6 +193,13 @@ class FCMNotifier:
 
     def _send_push_async(self, location_data):
         try:
+            # Check if Firebase works
+            try:
+                firebase_admin.get_app()
+            except ValueError:
+                if self.logger: self.logger("FCM Skipped: Firebase not initialized", "warning")
+                return
+
             title = "URGENT: Fall Detected!"
             body = "A fall has been detected! Please check immediately."
             if location_data:

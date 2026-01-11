@@ -1,10 +1,10 @@
-import React, { useMemo, Suspense } from 'react';
+import { useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { useNavigate } from 'react-router-dom';
 
-import { AICore } from './AICore';
+import { OmniSentinel } from './OmniSentinel';
 import { FeatureNode } from './FeatureNode';
 import { OrganicOcean } from './OrganicOcean';
 import { SYSTEMS, ANIMATION_CONFIG } from '../utils/constants';
@@ -77,8 +77,8 @@ export const Scene = () => {
             {/* Background Ocean of Energy */}
             <OrganicOcean />
 
-            {/* Central Spirit Core */}
-            <AICore />
+            {/* Central Spirit Core - OmniSentinel */}
+            <OmniSentinel />
 
             {/* Integrated Portals */}
             {Object.entries(SYSTEMS).map(([key, system]) => (

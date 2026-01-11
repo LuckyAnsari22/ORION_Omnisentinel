@@ -10,7 +10,8 @@ const firebaseConfig = {
     projectId: "fall-detection123",
     storageBucket: "fall-detection123.firebasestorage.app",
     messagingSenderId: "607959282408",
-    appId: "1:607959282408:web:0905d8c59df36bad4acf5d"
+    appId: "1:607959282408:web:0905d8c59df36bad4acf5d",
+    measurementId: "G-T0NGHH0G6H"
 };
 
 const app = initializeApp(firebaseConfig);

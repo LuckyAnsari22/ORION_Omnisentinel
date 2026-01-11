@@ -9,7 +9,7 @@ export const SYSTEMS = {
         color: '#00ff88',
         icon: '🛡️',
         url: '/guardian',
-        position: [4, 0, 0] as [number, number, number],
+        position: [6, 0, 0] as [number, number, number],
     },
     visualky: {
         id: 'visualky',
@@ -18,7 +18,7 @@ export const SYSTEMS = {
         color: '#ff0088',
         icon: '👁️',
         url: '/visualky',
-        position: [-4, 0, 0] as [number, number, number],
+        position: [-6, 0, 0] as [number, number, number],
     },
 } as const;
 

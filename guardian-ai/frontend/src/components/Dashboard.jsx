@@ -5,7 +5,8 @@ import Sidebar from './Sidebar';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+    // DEMO BYPASS: Default to logged in user immediately
+    const [user, setUser] = useState({ email: 'demo@falldetector.ai', uid: 'demo-user-123' });
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [fcmDebug, setFcmDebug] = useState('Initializing...');
     const [systemLogs, setSystemLogs] = useState([]);
@@ -99,16 +100,10 @@ const Dashboard = () => {
     }, [systemLogs]);
 
     useEffect(() => {
-        // DEMO BYPASS: Always set a mock user
-        const mockUser = {
-            email: 'admin@guardian.ai',
-            uid: 'demo-commander-001',
-            displayName: 'Commander'
-        };
-        setUser(mockUser);
+        // DEMO BYPASS: Authentication disabled
+        setUser({ email: 'demo@falldetector.ai', uid: 'demo-user-123' });
 
-        // Disable actual auth check
-        /*
+        /* FIREBASE DISABLED
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (!currentUser) navigate('/');
             else setUser(currentUser);
@@ -126,7 +121,7 @@ const Dashboard = () => {
 
         const checkBackend = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/status');
+                const res = await fetch('/api/status');
                 if (res.ok) addLog("Backend Connection: ESTABLISHED", "success");
                 else addLog("Backend Connection: FAILED", "error");
             } catch (e) {
@@ -145,7 +140,7 @@ const Dashboard = () => {
         // Check for recent fall history
         const fetchHistory = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/history');
+                const res = await fetch('/api/history');
                 const data = await res.json();
                 if (data && data.length > 0) {
                     const lastEvent = data[data.length - 1];
@@ -171,7 +166,7 @@ const Dashboard = () => {
 
         const fetchLogs = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/system_logs');
+                const res = await fetch('/api/system_logs');
                 const data = await res.json();
                 if (Array.isArray(data)) {
                     // We just replace the logs with the latest buffer from backend

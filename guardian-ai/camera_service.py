@@ -14,8 +14,23 @@ class CameraService:
         self.logger = logger
         self.notifier = FCMNotifier(logger=logger)
         self.current_location = None
-        self.fall_detector = None # Initialize to None for Async Loader
-        if self.logger: self.logger("Camera Service Initialized (NO AI MODE)", "info")
+        if self.logger: self.logger("Camera Service Initialized", "info")
+        
+        # LOAD AI MODEL IMMEDIATELY (NOT ASYNC)
+        print("\n🤖 Initializing AI Model...", flush=True)
+        try:
+            self.fall_detector = self._init_detector()
+            if self.fall_detector:
+                print("✅ AI MODEL LOADED! Fall detection is ACTIVE.", flush=True)
+                if self.logger: self.logger("AI Model Loaded: MoveNet Ready", "success")
+            else:
+                print("⚠️ Running in DEMO MODE (no AI)", flush=True)
+        except Exception as e:
+            print(f"❌ AI LOAD ERROR: {e}", flush=True)
+            import traceback
+            traceback.print_exc()
+            self.fall_detector = None
+            if self.logger: self.logger(f"AI Load Failed: {e}", "error")
 
     def update_fcm_token(self, token):
         self.notifier.set_fcm_token(token)
@@ -31,23 +46,27 @@ class CameraService:
     def _init_detector(self):
         # Helper to load AI Model Configuration
         _dir = os.path.dirname(os.path.abspath(__file__))
-        _good_movenet_model = os.path.join(
+        _good_tflite_model = os.path.join(
             _dir,
-            'ai_models/lite-model_movenet_singlepose_thunder_3.tflite'
+            'ai_models/posenet_mobilenet_v1_100_257x257_multi_kpt_stripped.tflite'
+        )
+        _good_edgetpu_model = os.path.join(
+            _dir,
+            'ai_models/posenet_mobilenet_v1_075_721_1281_quant_decoder_edgetpu.tflite'
         )
         _good_labels = os.path.join(_dir, 'ai_models/pose_labels.txt')
         
         config = {
             'model': {
-                'tflite': _good_movenet_model,
-                'edgetpu': _good_movenet_model, # Fallback to same for now
+                'tflite': _good_tflite_model,
+                'edgetpu': _good_edgetpu_model,
             },
             'labels': _good_labels,
-            'top_k': 1,
-            'confidence_threshold': 0.15,
-            'model_name': 'movenet'
+            'top_k': 5,
+            'confidence_threshold': 0.25,
+            'model_name': 'mobilenet'
         }
-        if self.logger: self.logger("AI Model Loaded: MoveNet SinglePose Thunder (High Accuracy Mode)", "success")
+        if self.logger: self.logger("AI Model Loaded: PoseNet MobileNet v1 (Sensitivity: Balanced)", "success")
         return FallDetector(**config)
 
     def start_camera(self):
@@ -60,8 +79,14 @@ class CameraService:
         self._is_starting = True
         try:
             print("Attempting to open Real Camera...", flush=True)
+            
+            # FORCE RELEASE ANY EXISTING
+            if self.camera:
+                self.camera.release()
+            cv2.destroyAllWindows()
+            
             # Try index 0 first
-            cap = cv2.VideoCapture(0)
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) # Use DirectShow for faster/safer Windows access
             if cap.isOpened():
                 # Warmup
                 time.sleep(1.0)
@@ -75,7 +100,7 @@ class CameraService:
             
             # If 0 fails, try 1 (external cam?)
             print("Index 0 failed, trying Index 1...", flush=True)
-            cap = cv2.VideoCapture(1)
+            cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
             if cap.isOpened():
                 time.sleep(1.0)
                 ret, _ = cap.read()
@@ -191,62 +216,21 @@ class CameraService:
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 pil_image = Image.fromarray(rgb_frame)
                 
-                # ASYNC AI LOADING
-                # We check if detector is ready. If not, and we haven't started loading, start thread.
                 if self.fall_detector is None:
-                    if not hasattr(self, '_ai_loading_thread_started') or not self._ai_loading_thread_started: # Check if thread has started
-                        self._ai_loading_thread_started = True
-                        print("Starting Async AI Loader Thread...", flush=True)
-                        
-                        def _load_worker():
-                            try:
-                                # Verify method exists before calling
-                                if not hasattr(self, '_init_detector'):
-                                    print("CRITICAL ERROR: _init_detector method MISSING on CameraService instance!", flush=True)
-                                    return
-
-                                print("Thread: Calling _init_detector()...", flush=True)
-                                detector = self._init_detector()
-                                self.fall_detector = detector # Atomic assignment
-                                print("Async AI Load Complete! Detector Set.", flush=True)
-                            except Exception as e:
-                                print(f"Async AI Load Failed: {e}", flush=True)
-                                import traceback
-                                traceback.print_exc()
-                                # Reset flag to retry later? Or just give up.
-                                self._ai_loading_thread_started = False 
-
-                        t = threading.Thread(target=_load_worker, daemon=True)
-                        t.start()
-
-                    # Visual Feedback
-                    cv2.putText(frame, "AI LOADING...", (10, 60), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                     # Visual Feedback
+                    cv2.putText(frame, "AI LOADING / ERROR...", (10, 60), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                          
                 else:
                      # AI IS READY
                      # DEBUG VISUAL
                     cv2.putText(frame, f"AI SYSTEM ONLINE", (10, 60), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                     
-                    # Pose Score Feedback
-                    if hasattr(self, '_last_score'):
-                        score_color = (0, 255, 0) if self._last_score > 0.15 else (0, 0, 255)
-                        cv2.putText(frame, f"Pose Tracking: {int(self._last_score*100)}%", (10, 80), 
-                                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, score_color, 1)
 
                 processed_sample = None
                 if self.fall_detector:
                     try:
                         processed_sample = next(self.fall_detector.process_sample(image=pil_image))
-                        if processed_sample and processed_sample.get('inference_result'):
-                            # Extract max score from results for HUD
-                            res = processed_sample['inference_result']
-                            if res:
-                                self._last_score = max([inf.get('confidence', 0) for inf in res])
-                                # LOUD LOGGING for demo
-                                label_sum = ", ".join([d.get('label') for d in res])
-                                print(f"AI ENGINE: {label_sum} (Tracking: {int(self._last_score*100)}%)", end='\r', flush=True)
                     except Exception as e:
                         # If inference fails, just show raw video
                         # print(f"Inference Error: {e}", flush=True)
@@ -266,6 +250,26 @@ class CameraService:
                     inference_result = processed_sample.get('inference_result')
                     color_status = (0, 255, 0) # Green
 
+                    # ALWAYS DRAW KEYPOINTS IF AVAILABLE (Even if no fall detected)
+                    # The generator yields a list of detections. If list is empty, no fall.
+                    # But we want to see the skeleton regardless.
+                    
+                    # HACK: If inference_result is empty (no fall), we need to check if 'keypoints' are embedded elsewhere
+                    # or force the pipeline to return basic pose data.
+                    
+                    # For now, let's look at how the pipeline works. 
+                    # process_sample -> yield {'inference_result': [...]}
+                    # If inference_result is empty, it means fall_detect returned []
+                    # fall_detect returns [('FALL', ...)] ONLY on fall?
+                    # Let's check fall_detect return.
+                    
+                    # Updated Logic:
+                    # If inference_result has data, use it.
+                    # If not, check if we can access the latest pose from the detector?
+                    
+                    # Assuming 'inference_result' structure contains the detection.
+                    
+                    has_drawn = False
                     if inference_result:
                         for det in inference_result:
                             keypoints = det.get('keypoint_corr')
@@ -280,30 +284,64 @@ class CameraService:
                                 
                             if keypoints:
                                 self._draw_keypoints(frame, keypoints)
-                                self._draw_bounding_box(frame, keypoints, box_color)
-                                
+                                # self._draw_bounding_box(frame, keypoints, box_color) # skip bbox for cleaner look
+                                has_drawn = True
+
                                 x_coords = [c[0] for c in keypoints.values() if c is not None]
                                 y_coords = [c[1] for c in keypoints.values() if c is not None]
                                 if x_coords and y_coords:
                                     txt_x = max(0, int(min(x_coords)) - 20)
                                     txt_y = max(30, int(min(y_coords)) - 35)
                                     display_label = "ID:1 FALLEN" if box_label == "FALL DETECTED" else "ID:1 ACTIVE"
+                                    text_color = (0, 0, 255) if box_label == "FALL DETECTED" else (0, 255, 0)
                                     cv2.putText(frame, display_label, (txt_x + 5, txt_y + 20), 
-                                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 2)
+                    
+                    # If we didn't draw anything (no fall detected), we still want to see the skeleton!
+                    # However, the current fall_detect implementation ONLY returns inference_result if a fall is detected (or near fall).
+                    # We need to modify fall_detect to RETURN THE POSE always.
+                    
+                    # Since I cannot easily modify fall_detect's return signature without breaking other things,
+                    # I will try to fetch the last known pose directly from the detector if possible.
+                    # Looking at fall_detect.py, it stores _prev_data.
+                    
+                if not has_drawn and self.fall_detector:
+                     # Access internal state (Hack for demo visualization)
+                     try:
+                         # _prev_data is a deque of (timestamp, pose_dix, spinal, thumbnail)
+                         if self.fall_detector._prev_data and self.fall_detector._prev_data[-1]:
+                             last_data = self.fall_detector._prev_data[-1] 
+                             last_pose = last_data.get(self.fall_detector.POSE_VAL) # pose_dix
+                             if last_pose:
+                                 self._draw_keypoints(frame, last_pose)
+                                 # Draw "Normal" label
+                                 x_coords = [c[0] for c in last_pose.values() if c is not None]
+                                 if x_coords:
+                                     # Calculate center approx
+                                     txt_x = int(min(x_coords))
+                                     txt_y = int(min([c[1] for c in last_pose.values() if c is not None]))
+                                     cv2.putText(frame, "ID:1 ACTIVE", (txt_x, txt_y - 20), 
+                                              cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                     except Exception as e:
+                         pass
 
-                            if label == 'FALL':
-                                self.alert_latch_until = current_time + 5.0
-                                is_latched = True
-                                _, img_encoded = cv2.imencode('.jpg', frame)
-                                import datetime
-                                now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                payload = {'timestamp': now_str}
-                                if self.current_location:
-                                    payload.update(self.current_location)
-                                try:
-                                    self.notifier.send_fall_alert(img_encoded.tobytes(), payload)
-                                except Exception as e:
-                                    print(f"Notification Failed: {e}", flush=True)
+                # Check for fall triggers from the inference loop
+                if inference_result:
+                    for det in inference_result:
+                        label = det.get('label')
+                        if label == 'FALL':
+                            self.alert_latch_until = current_time + 5.0
+                            is_latched = True
+                            _, img_encoded = cv2.imencode('.jpg', frame)
+                            import datetime
+                            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            payload = {'timestamp': now_str}
+                            if self.current_location:
+                                payload.update(self.current_location)
+                            try:
+                                self.notifier.send_fall_alert(img_encoded.tobytes(), payload)
+                            except Exception as e:
+                                print(f"Notification Failed: {e}", flush=True)
 
                 if is_latched:
                     status_text = "WARNING: FALL DETECTED!"

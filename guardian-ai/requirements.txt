@@ -1,9 +1,7 @@
-numpy
-Pillow
-PyYAML
+numpy>=1.16.2
+Pillow>=5.4.1
+PyYAML>=5.1.2
 flask
-flask-cors
+flask_cors
 opencv-python
-firebase-admin
-requests
-python-dotenv
+tensorflow>=2.12.0

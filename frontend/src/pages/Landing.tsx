@@ -35,15 +35,16 @@ export const Landing = () => {
                     animation: 'fadeInDown 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
                     <h1 style={{
-                        fontSize: '3.5rem',
-                        fontWeight: 700,
+                        fontSize: '4.5rem',
+                        fontWeight: 900,
                         margin: 0,
                         letterSpacing: '-0.04em',
-                        fontFamily: 'var(--font-display)',
+                        fontFamily: 'Inter, sans-serif',
                         textTransform: 'uppercase',
-                        color: '#fff'
+                        color: '#fff',
+                        textShadow: '0 0 30px rgba(0,255,255,0.4)'
                     }}>
-                        Core Intelligence
+                        OMNISENTINEL
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ height: '1px', width: '40px', background: 'var(--color-core)' }} />
@@ -54,16 +55,22 @@ export const Landing = () => {
                             color: 'var(--color-core)',
                             fontWeight: 300
                         }}>
-                            Autonomous Safety Grid
+                            Created by Team Outliers
                         </span>
                     </div>
                 </header>
 
                 {/* Content: The Judge Talking Point */}
                 <div className="talking-point">
-                    <p>
-                        “The AI Assistant landing page is not just a UI — it’s a living environment.
-                        It evokes oceanic motion and organic forms to represent intelligence as a natural presence.”
+                    <p style={{
+                        fontSize: '1.2rem',
+                        color: 'rgba(255,255,255,0.7)',
+                        lineHeight: '1.6',
+                        maxWidth: '500px',
+                        fontFamily: 'Inter, sans-serif'
+                    }}>
+                        “OmniSentinel is the peak of visual intelligence.
+                        A neural environment crafted by Team Outliers where safety meets cinematic motion.”
                     </p>
                     <div style={{ marginTop: '2rem', display: 'flex', gap: '1.5rem', pointerEvents: 'auto' }}>
                         <button

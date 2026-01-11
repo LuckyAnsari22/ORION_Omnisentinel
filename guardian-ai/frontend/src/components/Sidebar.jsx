@@ -85,7 +85,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 </div>
                                 <div className="overflow-hidden">
                                     <div className="text-base font-medium text-white truncate" title={auth.currentUser?.email}>
-                                        {auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'COMMANDER'}
+                                        {auth.currentUser?.displayName
+                                            || auth.currentUser?.email?.split('@')[0]
+                                            || localStorage.getItem('demo_user_name')
+                                            || 'Admin Officer'}
                                     </div>
                                     <div className="text-sm text-green-400 flex items-center gap-1 font-mono">
                                         <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>

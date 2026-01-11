@@ -22,6 +22,29 @@ export const SystemProxy = ({ systemId }: SystemProxyProps) => {
         // Reset state on mount
         setCurrentSystem(systemId);
 
+        // --- Camera Hand-off Logic ---
+        const handleCameraHandover = async () => {
+            if (systemId === 'visualky') {
+                // Tell Guardian AI to release the camera so Visualky can use it in browser
+                try {
+                    await fetch('http://localhost:5001/api/camera/stop', { method: 'POST' });
+                    console.log('🛡️ Guardian camera released for 👁️ Visualky');
+                } catch (e) {
+                    console.warn('Failed to stop Guardian camera:', e);
+                }
+            } else if (systemId === 'guardian') {
+                // Ensure Guardian AI re-acquires the camera
+                try {
+                    await fetch('http://localhost:5001/api/camera/start', { method: 'POST' });
+                    console.log('🛡️ Guardian camera re-acquired');
+                } catch (e) {
+                    console.warn('Failed to start Guardian camera:', e);
+                }
+            }
+        };
+
+        handleCameraHandover();
+
         // Simulate initial loading or wait for iframe load event
         const timer = setTimeout(() => setLoading(false), 2000);
         return () => clearTimeout(timer);

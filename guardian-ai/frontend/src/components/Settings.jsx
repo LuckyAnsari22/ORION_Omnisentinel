@@ -14,7 +14,7 @@ const Settings = () => {
 
     // Fetch settings on load
     useEffect(() => {
-        fetch('http://localhost:5001/api/get_settings')
+        fetch('/api/get_settings')
             .then(res => res.json())
             .then(data => {
                 if (data.email_config) setEmailConfig(prev => ({ ...prev, ...data.email_config }));
@@ -40,7 +40,7 @@ const Settings = () => {
             // OR we need to only send if visible. 
             // Let's implement simple overwriting for now as requested by user speed.)
 
-            const res = await fetch('http://localhost:5001/api/save_settings', {
+            const res = await fetch('/api/save_settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

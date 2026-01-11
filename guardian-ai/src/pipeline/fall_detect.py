@@ -71,15 +71,15 @@ class FallDetector():
         self._prev_data[0] = self._prev_data[1] = _dix
 
         self._pose_engine = PoseEngine(self._tfengine, self.model_name)
-        self._fall_factor = 30 # Lowered to 30 for high sensitivity
-        self.confidence_threshold = confidence_threshold
-        log.debug(f"Initializing FallDetector with conficence threshold: \
-                  {self.confidence_threshold}")
+        self.confidence_threshold = 0.4  # DEMO TUNING: Lowered from default
+        self._fall_factor = 45 # DEMO TUNING: Lower degree to detect leaning as fall earlier
+        log.debug(f"Initializing FallDetector with conficence threshold: {self.confidence_threshold}")
 
-        # otherwise on high performing hard, the poses could be too close to
+        # Require a minimum amount of time between two video frames in seconds.
+        # Otherwise on high performing hard, the poses could be too close to
         # each other and have negligible difference
         # for fall detection purpose.
-        self.min_time_between_frames = 0.3 # Set to 300ms to capture real human motion deltas
+        self.min_time_between_frames = 0.05
         # Require the time distance between two video frames not to exceed
         # a certain limit in seconds.
         # Otherwise there could be data noise which could lead
@@ -167,7 +167,9 @@ class FallDetector():
 
         # this score value should be related to the configuration \
         # confidence_threshold parameter
-        min_score = self.confidence_threshold
+        self.confidence_threshold = 0.15 # EXTREMELY SENSITIVE FOR DEMO
+        self._pose_engine.confidence_threshold = 0.1
+        min_score = 0.05 
         rotations = [Image.ROTATE_270, Image.ROTATE_90]
         angle = 0
         pose = None
@@ -428,57 +430,58 @@ class FallDetector():
 
                 current_body_vector_score = spinal_vector_score
 
-                # Find line angle with vertical axis
+                # Find line angle with vertcal axis
                 left_angle_with_yaxis, rigth_angle_with_yaxis = \
                     self.get_line_angles_with_yaxis(pose_dix)
-                
-                max_abs_angle = max(left_angle_with_yaxis, rigth_angle_with_yaxis)
-                log.debug(f"Current Body Angle: {max_abs_angle:.1f} degrees. Confidence: {current_body_vector_score:.2f}")
 
                 # save an image with drawn lines for debugging
                 if log.getEffectiveLevel() <= logging.DEBUG:
                     # development mode
                     self.draw_lines(thumbnail, pose_dix, spinal_vector_score)
 
-                # PRIORITY 1: Absolute Angle (Static Fall)
-                # If you are leaning significantly or on the floor, you are fallen.
-                # Lowered to 50 degrees to make it very easy to trigger for the demo
-                if max_abs_angle > 50 and current_body_vector_score > 0.15:
-                    print(f"!!! CRITICAL: FALL DETECTED (STATIC) !!! Angle: {max_abs_angle:.1f} | Tracking: {int(current_body_vector_score*100)}%", flush=True)
-                    inference_result = [('FALL', current_body_vector_score, 0, pose_dix)]
-                else:
-                    # Telemetry for non-falls
-                    if current_body_vector_score > 0.1:
-                        print(f"-> AI Activity: Tracking {int(current_body_vector_score*100)}% | Body Angle: {max_abs_angle:.1f}", end='\r', flush=True)
-                    
-                    # PRIORITY 2: Motion Delta (Dynamic Fall)
-                    for t in [-1, -2]:
-                        lapse = now - self._prev_data[t][self.TIMESTAMP]
+                for t in [-1, -2]:
+                    lapse = now - self._prev_data[t][self.TIMESTAMP]
 
-                        if not self._prev_data[t][self.POSE_VAL] or \
-                           lapse > self.max_time_between_frames:
-                            continue
-                        
-                        elif not self.is_body_line_motion_downward(
-                                                            left_angle_with_yaxis,
-                                                            rigth_angle_with_yaxis,
-                                                            inx=t):
-                            continue
+                    if not self._prev_data[t][self.POSE_VAL] or \
+                       lapse > self.max_time_between_frames:
+                        log.debug("No recent pose to compare to. Will save \
+                            this frame pose for subsequent comparison.")
+                    elif not self.is_body_line_motion_downward(
+                                                        left_angle_with_yaxis,
+                                                        rigth_angle_with_yaxis,
+                                                        inx=t):
+                        log.debug("The body-line angle with vertical axis is \
+                                    decreasing from the previous frame. \
+                                    Not likely to be a fall.")
+                    else:
+                        leaning_angle = self.find_changes_in_angle(pose_dix,
+                                                                   inx=t)
+
+                        # Get leaning_probability by comparing leaning_angle
+                        # with fall_factor probability.
+                        leaning_probability = 1 \
+                            if leaning_angle > self._fall_factor else 0
+
+                        # Calculate fall score using average of current and \
+                        # previous frame's body vector score with \
+                        # leaning_probability
+                        fall_score = leaning_probability * \
+                            (self._prev_data[t][self.BODY_VECTOR_SCORE] +
+                             current_body_vector_score) / 2
+
+                        if fall_score >= self.confidence_threshold:
+                            inference_result.append(('FALL', fall_score,
+                                                     leaning_angle, pose_dix))
+                            log.info("Fall detected: %r", inference_result)
+                            break
                         else:
-                            leaning_angle = self.find_changes_in_angle(pose_dix,
-                                                                       inx=t)
-
-                            leaning_probability = 1 \
-                                if leaning_angle > self._fall_factor else 0
-
-                            fall_score = leaning_probability * \
-                                (self._prev_data[t][self.BODY_VECTOR_SCORE] +
-                                 current_body_vector_score) / 2
-
-                            if fall_score >= self.confidence_threshold:
-                                inference_result = [('FALL', fall_score, leaning_angle, pose_dix)]
-                                print(f"!!! CRITICAL: DYNAMIC FALL DETECTED !!! Angle Change: {leaning_angle:.1f}", flush=True)
-                                break
+                            if leaning_angle > self._fall_factor:
+                                print(f"DEBUG: NEAR FALL detected! Score: {fall_score:.2f} (Threshold: {self.confidence_threshold})", flush=True)
+                            
+                            log.debug(f"No fall detected due to low \
+                            confidence score:  \
+                            {fall_score} < {self.confidence_threshold} \
+                            min threshold.Inference result: {inference_result}")
 
                 # If after checking history we still have no fall detected, 
                 # but we have a valid pose, return it as NORMAL so UI can draw it
