@@ -134,7 +134,7 @@ function App() {
     setIsAnalyzing(true);
     setAiAnalysis("Analyzing bio-signals...");
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       const prompt = `I am a user of a health app. My Heart Rate is currently ${bpm} BPM and my HRV is ${hrv}ms. I am resting. Analyze these metrics briefly in a medical but friendly tone. Is this normal? Give one quick actionable tip.`;
 
       const result = await model.generateContent(prompt);
