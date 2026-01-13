@@ -1,0 +1,7 @@
+{
+    "version": 2,
+    "name": "orion-sonicguard",
+    "installCommand": "npm install --legacy-peer-deps",
+    "buildCommand": "vite build",
+    "outputDirectory": "dist"
+}

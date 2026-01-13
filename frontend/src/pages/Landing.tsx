@@ -3,13 +3,16 @@ import { useAppStore } from '../store/appStore';
 import { VoiceCommand } from '../components/VoiceCommand';
 
 export const Landing = () => {
-    const { isTransitioning } = useAppStore();
+    const { isTransitioning, activeAppUrl } = useAppStore(); // activeAppUrl kept for header styling logic if needed, or remove if header doesn't use it.
+    // The previous code used activeAppUrl logic for header color.
+    // I should check if I broke the header color logic.
+    // Let's keep activeAppUrl but remove setActiveAppUrl.
 
     return (
         <div style={{ width: '100%', height: '100vh', position: 'relative', overflow: 'hidden', background: '#00050a' }}>
 
             {/* Cinematic 3D Environment */}
-            <div className="canvas-container">
+            <div className="canvas-container" style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
                 <Scene />
             </div>
 
@@ -44,9 +47,9 @@ export const Landing = () => {
                         color: '#fff',
                         textShadow: '0 0 30px rgba(0,255,255,0.4)'
                     }}>
-                        OMNISENTINEL
+                        ORION NEXUS
                     </h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', opacity: activeAppUrl ? 0 : 1, transition: 'opacity 0.5s' }}>
                         <div style={{ height: '1px', width: '40px', background: 'var(--color-core)' }} />
                         <span style={{
                             fontSize: '0.9rem',
@@ -55,78 +58,27 @@ export const Landing = () => {
                             color: 'var(--color-core)',
                             fontWeight: 300
                         }}>
-                            Created by Team Outliers
+                            ORION NEXUS PLATFORM
                         </span>
                     </div>
                 </header>
 
-                {/* Content: The Judge Talking Point */}
-                <div className="talking-point">
-                    <p style={{
-                        fontSize: '1.2rem',
-                        color: 'rgba(255,255,255,0.7)',
-                        lineHeight: '1.6',
-                        maxWidth: '500px',
-                        fontFamily: 'Inter, sans-serif'
-                    }}>
-                        “OmniSentinel is the peak of visual intelligence.
-                        A neural environment crafted by Team Outliers where safety meets cinematic motion.”
-                    </p>
-                    <div style={{ marginTop: '2rem', display: 'flex', gap: '1.5rem', pointerEvents: 'auto' }}>
-                        <button
-                            onClick={() => window.location.href = '/guardian'}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                color: '#fff',
-                                padding: '10px 24px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                letterSpacing: '0.1em',
-                                transition: 'all 0.3s'
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--color-guardian)'}
-                            onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-                        >
-                            INITIATE GUARDIAN
-                        </button>
-                        <button
-                            onClick={() => window.location.href = '/visualky'}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                color: '#fff',
-                                padding: '10px 24px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.8rem',
-                                letterSpacing: '0.1em',
-                                transition: 'all 0.3s'
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--color-visualky)'}
-                            onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-                        >
-                            INITIATE VISUALKY
-                        </button>
-                    </div>
-                </div>
-
-                {/* Footer: Tech Status & Voice */}
+                {/* Footer */}
                 <footer style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-end'
+                    alignItems: 'flex-end',
+                    opacity: activeAppUrl ? 0 : 1, // Hide when app open
+                    transition: 'opacity 0.5s'
                 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>
-                            LATENCY: 12MS // UPTIME: 99.9%
+                            LATENCY: 12MS // SYSTEMS: 10/10 ACTIVE
                         </div>
                         <div style={{ textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 700, color: '#fff' }}>
                             Neural Modules Synchronized
                         </div>
                     </div>
-
                     <VoiceCommand />
                 </footer>
             </div>
@@ -154,9 +106,9 @@ export const Landing = () => {
                     from { transform: translateY(-30px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
                 }
-                @keyframes fadeInUp {
-                    from { transform: translateY(30px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
+                @keyframes zoomIn {
+                    from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+                    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
                 }
             `}</style>
         </div>

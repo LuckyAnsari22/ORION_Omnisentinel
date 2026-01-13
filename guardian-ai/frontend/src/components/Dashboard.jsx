@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import { getApiUrl } from '../config/api';
+import { FallPredictor } from '../ml/FallPrediction';
+import PredictionTimeline from './PredictionTimeline';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -18,6 +21,14 @@ const Dashboard = () => {
     const sirenGainRef = React.useRef(null);
     const [isSirenActive, setIsSirenActive] = useState(false);
 
+    // Fall Prediction State
+    const fallPredictorRef = useRef(null);
+    const videoRef = useRef(null);
+    const canvasRef = useRef(null);
+    const [fallPrediction, setFallPrediction] = useState(null);
+    const [stabilityScore, setStabilityScore] = useState(100);
+    const [isPredictionActive, setIsPredictionActive] = useState(false);
+
     const stopSiren = async () => {
         try {
             if (sirenOscRef.current) {
@@ -32,7 +43,7 @@ const Dashboard = () => {
             setIsSirenActive(false);
 
             // Notify Backend to reset state
-            await fetch('/api/reset_alert', { method: 'POST' });
+            await fetch(getApiUrl('/api/reset_alert'), { method: 'POST' });
             addLog("Alarm Manually Reset", "info");
 
         } catch (e) {
@@ -121,7 +132,7 @@ const Dashboard = () => {
 
         const checkBackend = async () => {
             try {
-                const res = await fetch('/api/status');
+                const res = await fetch(getApiUrl('/api/status'));
                 if (res.ok) addLog("Backend Connection: ESTABLISHED", "success");
                 else addLog("Backend Connection: FAILED", "error");
             } catch (e) {
@@ -140,7 +151,7 @@ const Dashboard = () => {
         // Check for recent fall history
         const fetchHistory = async () => {
             try {
-                const res = await fetch('/api/history');
+                const res = await fetch(getApiUrl('/api/history'));
                 const data = await res.json();
                 if (data && data.length > 0) {
                     const lastEvent = data[data.length - 1];
@@ -166,7 +177,7 @@ const Dashboard = () => {
 
         const fetchLogs = async () => {
             try {
-                const res = await fetch('/api/system_logs');
+                const res = await fetch(getApiUrl('/api/system_logs'));
                 const data = await res.json();
                 if (Array.isArray(data)) {
                     // We just replace the logs with the latest buffer from backend
@@ -215,6 +226,120 @@ const Dashboard = () => {
         return () => clearInterval(interval);
     }, [user]);
 
+    // Initialize Fall Predictor
+    useEffect(() => {
+        const initPredictor = async () => {
+            try {
+                const predictor = new FallPredictor();
+                await predictor.initialize();
+                fallPredictorRef.current = predictor;
+                setIsPredictionActive(true);
+                addLog("Fall Prediction System: ACTIVE", "success");
+            } catch (error) {
+                console.error('Failed to initialize fall predictor:', error);
+                addLog("Fall Prediction: INITIALIZATION FAILED", "error");
+            }
+        };
+
+        if (user) {
+            initPredictor();
+        }
+
+        return () => {
+            if (fallPredictorRef.current) {
+                fallPredictorRef.current.dispose();
+            }
+        };
+    }, [user]);
+
+    // Real-time Fall Prediction Loop
+    // Initialize Frontend Camera
+    useEffect(() => {
+        const startCamera = async () => {
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                            facingMode: "user"
+                        }
+                    });
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                        // Force play and show
+                        try {
+                            await videoRef.current.play();
+                            setIsVideoLoaded(true);
+                            addLog("Camera Feed Active", "success");
+                        } catch (playErr) {
+                            console.error("AutoPlay failed:", playErr);
+                        }
+                    }
+                } else {
+                    addLog("Camera API Not Supported", "error");
+                }
+            } catch (err) {
+                console.error("Camera Init Failed:", err);
+                addLog(`Camera Error: ${err.message}`, "error");
+            }
+        };
+
+        if (user) {
+            // Small delay to ensure DOM is ready
+            setTimeout(startCamera, 500);
+        }
+
+        return () => {
+            // Cleanup stream tracks
+            if (videoRef.current && videoRef.current.srcObject) {
+                const tracks = videoRef.current.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        };
+    }, [user]);
+
+
+
+    // Real-time Fall Prediction Loop
+    const isProcessingRef = useRef(false);
+
+    useEffect(() => {
+        if (!isPredictionActive || !fallPredictorRef.current) return;
+
+        const runPrediction = async () => {
+            if (isProcessingRef.current) return; // Drop frame if busy
+
+            try {
+                isProcessingRef.current = true;
+                const videoElement = videoRef.current;
+
+                if (videoElement && videoElement.readyState >= 2) {
+                    await fallPredictorRef.current.detectPose(videoElement);
+                    const prediction = await fallPredictorRef.current.predictFall();
+                    setFallPrediction(prediction);
+
+                    const stability = fallPredictorRef.current.getStabilityScore();
+                    setStabilityScore(stability);
+
+                    if (prediction.riskLevel === 'critical' && !isSirenActive) {
+                        addLog(`FALL PREDICTED IN ${prediction.timeToFall}s!`, "alert");
+                        playSiren();
+                    }
+                }
+            } catch (error) {
+                console.warn('Prediction skipped:', error);
+            } finally {
+                isProcessingRef.current = false;
+            }
+        };
+
+        // Run prediction at 5 FPS (200ms) to avoid lagging headers
+        const interval = setInterval(runPrediction, 200);
+
+        return () => clearInterval(interval);
+    }, [isPredictionActive, isSirenActive]);
+
     if (!user) return (
         <div className="min-h-screen bg-cyber-dark flex items-center justify-center">
             <div className="w-12 h-12 border-4 border-cyber-primary border-t-transparent rounded-full animate-spin"></div>
@@ -256,20 +381,20 @@ const Dashboard = () => {
                                 {/* Scanline Overlay */}
                                 <div className="absolute inset-0 pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,6px_100%]"></div>
 
-                                <img
-                                    src="/video_feed"
-                                    alt="Live surveillance feed"
-                                    className={`w-full h-full object-contain ${isVideoLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
-                                    onLoad={() => setIsVideoLoaded(true)}
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        setIsVideoLoaded(false);
-                                    }}
+                                {/* Frontend Camera Feed - Works on Deployment */}
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className={`w-full h-full object-cover transform scale-x-[-1] ${isVideoLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
+                                    onCanPlay={() => setIsVideoLoaded(true)}
                                 />
+
                                 {!isVideoLoaded && (
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div className="bg-slate-900/80 px-4 py-2 rounded border border-slate-700 text-slate-400 text-sm font-mono animate-pulse">
-                                            ESTABLISHING FEED...
+                                            INITIALIZING OPTICAL SENSORS...
                                         </div>
                                     </div>
                                 )}
@@ -333,6 +458,11 @@ const Dashboard = () => {
                                     <div ref={logsEndRef} />
                                 </div>
                             </div>
+
+                            {/* Fall Prediction Timeline */}
+                            {isPredictionActive && fallPrediction && (
+                                <PredictionTimeline prediction={fallPrediction} />
+                            )}
 
                             {/* Help Shortcut */}
                             <button

@@ -1,0 +1,60 @@
+graph TD
+    %% Styling
+    classDef hub fill:#00f0ff,stroke:#0f172a,stroke-width:4px,color:black,font-weight:bold
+    classDef safety fill:#00ff88,stroke:#0f172a,stroke-width:2px,color:black
+    classDef health fill:#ff0088,stroke:#0f172a,stroke-width:2px,color:black
+    classDef infra fill:#7000ff,stroke:#0f172a,stroke-width:2px,color:white
+    classDef google fill:#ffffff,stroke:#4285F4,stroke-width:2px,color:black
+
+    %% Main Hub
+    Nexus(Orion Nexus<br/>3D Orchestrator<br/>React Three Fiber):::hub
+
+    %% Clusters
+    subgraph Core_Safety [🛡️ Core Safety Layer]
+        Guardian(Guardian AI<br/>Fall Detection):::safety
+        Phantom(Phantom Guardian<br/>Intrusion Sim):::safety
+        Danger(Danger Maps<br/>Threat Viz):::safety
+        Sonic(SonicGuard<br/>Acoustic Threat):::safety
+        Silent(Silent Witness<br/>Reporting):::safety
+    end
+
+    subgraph Health_Access [👁️ Health & Accessibility]
+        VisualKy(VisualKy<br/>Gemini Vision):::health
+        BioSync(BioSync Oracle<br/>Vitals Dashboard):::health
+        Reality(Reality Anchor<br/>Cognitive Aid):::health
+        Emotion(EmotionGuard<br/>Mood Analysis):::health
+    end
+
+    subgraph Infrastructure [🧠 Network & Sync]
+        Swarm(Swarm Intelligence<br/>Response Net):::infra
+        Neuro(NeuroSync<br/>Data Bus):::infra
+        Quantum(Quantum Mesh<br/>Sim):::infra
+    end
+
+    %% Connections to Hub
+    Nexus <--> Guardian
+    Nexus <--> Phantom
+    Nexus <--> Danger
+    Nexus <--> Sonic
+    Nexus <--> Silent
+    Nexus <--> VisualKy
+    Nexus <--> BioSync
+    Nexus <--> Reality
+    Nexus <--> Emotion
+    Nexus <--> Swarm
+    Nexus <--> Neuro
+    Nexus <--> Quantum
+
+    %% Backend Services
+    subgraph Google_Cloud [☁️ Google Cloud & Firebase Platform]
+        Firebase[(Firebase<br/>Auth & Firestore)]:::google
+        VisionAPI[Gemini Pro Vision API]:::google
+        TFLite[TensorFlow Lite Edge]:::google
+    end
+
+    %% Data Flow
+    Guardian -.-> TFLite
+    VisualKy -.-> VisionAPI
+    Core_Safety --> Firebase
+    Health_Access --> Firebase
+    Infrastructure --> Firebase

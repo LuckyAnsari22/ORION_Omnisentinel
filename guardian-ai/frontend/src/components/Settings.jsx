@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
+import { getApiUrl } from '../config/api';
 
 const Settings = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,7 +15,7 @@ const Settings = () => {
 
     // Fetch settings on load
     useEffect(() => {
-        fetch('/api/get_settings')
+        fetch(getApiUrl('/api/get_settings'))
             .then(res => res.json())
             .then(data => {
                 if (data.email_config) setEmailConfig(prev => ({ ...prev, ...data.email_config }));
@@ -40,7 +41,7 @@ const Settings = () => {
             // OR we need to only send if visible. 
             // Let's implement simple overwriting for now as requested by user speed.)
 
-            const res = await fetch('/api/save_settings', {
+            const res = await fetch(getApiUrl('/api/save_settings'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

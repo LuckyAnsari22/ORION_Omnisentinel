@@ -1,0 +1,13 @@
+
+# 🚀 ORION NEXUS LINKS
+
+## 🛸 COMMAND CENTER (Main)
+**[http://localhost:5000](http://localhost:5000)**
+(Use this to access everything)
+
+## 🛡️ GUARDIAN AI (Fall Detection)
+**[http://localhost:5191](http://localhost:5191)**
+(Camera requires you to use 'localhost'. Do not use IP address).
+
+## 👻 PHANTOM GUARDIAN (Intruder)
+**[http://localhost:5178](http://localhost:5178)**

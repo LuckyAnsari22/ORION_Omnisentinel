@@ -2,6 +2,14 @@
 
 > **A hackathon-winning platform that orchestrates multiple intelligent AI systems under one immersive 3D interface.**
 
+## 🌐 Live Deployment (Production)
+
+| Component | URL | Status |
+|-----------|-----|--------|
+| **Main Platform** (3D Landing) | [**https://omnisentinel-main.vercel.app**](https://omnisentinel-main.vercel.app) | ✅ Live |
+| **Guardian AI** (Fall Detection) | [https://omnisentinel-guardian.vercel.app](https://omnisentinel-guardian.vercel.app) | ✅ Live |
+| **Visualky** (Visual Intelligence) | [https://visualky.vercel.app](https://visualky.vercel.app) | ✅ Live |
+
 ---
 
 ## 🎯 What is AI Assistant?

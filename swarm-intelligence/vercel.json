@@ -1,0 +1,7 @@
+{
+    "outputDirectory":  "dist",
+    "buildCommand":  "vite build",
+    "name":  "orion-swarm-intelligence",
+    "version":  2,
+    "installCommand":  "npm install --legacy-peer-deps"
+}

@@ -6,7 +6,16 @@ import os
 import json
 
 app = Flask(__name__)
-CORS(app) # Allow frontend to call API
+# Configure CORS to allow production frontend
+# Configure CORS to allow all local development ports
+CORS(app, resources={
+    r"/*": {
+        "origins": "*", 
+        "methods": ["GET", "POST", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
 
 
 # In-memory system logs

@@ -70,3 +70,4 @@ weights/
 *.avi
 *.mov
 recordings/
+.vercel

@@ -1,6 +1,150 @@
 {
     "version": 2,
-    "buildCommand": "cd frontend && npm install && npm run build",
-    "outputDirectory": "frontend/dist",
-    "framework": "vite"
+    "builds": [
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
+        },
+        {
+            "src": "visualky/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "visualky/dist"
+            }
+        },
+        {
+            "src": "guardian-ai/frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "guardian-ai/frontend/dist"
+            }
+        },
+        {
+            "src": "biosync-oracle/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "biosync-oracle/dist"
+            }
+        },
+        {
+            "src": "danger-maps/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "danger-maps/dist"
+            }
+        },
+        {
+            "src": "emotionguard/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "emotionguard/dist"
+            }
+        },
+        {
+            "src": "neurosync-guardian/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "neurosync-guardian/dist"
+            }
+        },
+        {
+            "src": "phantom-guardian/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "phantom-guardian/dist"
+            }
+        },
+        {
+            "src": "quantum-mesh/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "quantum-mesh/dist"
+            }
+        },
+        {
+            "src": "reality-anchor/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "reality-anchor/dist"
+            }
+        },
+        {
+            "src": "silent-witness/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "silent-witness/dist"
+            }
+        },
+        {
+            "src": "sonicguard/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "sonicguard/dist"
+            }
+        },
+        {
+            "src": "swarm-intelligence/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "swarm-intelligence/dist"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/visualky/(.*)",
+            "dest": "/visualky/$1"
+        },
+        {
+            "src": "/guardian/(.*)",
+            "dest": "/guardian-ai/frontend/$1"
+        },
+        {
+            "src": "/biosync/(.*)",
+            "dest": "/biosync-oracle/$1"
+        },
+        {
+            "src": "/danger/(.*)",
+            "dest": "/danger-maps/$1"
+        },
+        {
+            "src": "/emotion/(.*)",
+            "dest": "/emotionguard/$1"
+        },
+        {
+            "src": "/neuro/(.*)",
+            "dest": "/neurosync-guardian/$1"
+        },
+        {
+            "src": "/phantom/(.*)",
+            "dest": "/phantom-guardian/$1"
+        },
+        {
+            "src": "/quantum/(.*)",
+            "dest": "/quantum-mesh/$1"
+        },
+        {
+            "src": "/reality/(.*)",
+            "dest": "/reality-anchor/$1"
+        },
+        {
+            "src": "/silent/(.*)",
+            "dest": "/silent-witness/$1"
+        },
+        {
+            "src": "/sonic/(.*)",
+            "dest": "/sonicguard/$1"
+        },
+        {
+            "src": "/swarm/(.*)",
+            "dest": "/swarm-intelligence/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/$1"
+        }
+    ]
 }

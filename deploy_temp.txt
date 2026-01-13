@@ -1,0 +1,11 @@
+Vercel CLI 50.1.6
+Loading scopes…
+Searching for existing projects…
+Linked to lucky-ansaris-projects/final_team_outliers (created .vercel and added it to .gitignore)
+> Found multiple remote URLs.
+? Which remote do you want to connect? (Use arrow keys)
+> https://github.com/LuckyAnsari22/ai-assistant-platform.git (origin)
+  https://github.com/PANTH217/Guardian-AI-Fall-Detection (upstream)
+ ───────────────────────────────────────────────────────────────────
+  Cancel[?25l[9G
+[?25h

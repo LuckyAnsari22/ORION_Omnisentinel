@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "orion-danger-maps",
+    "builds": [
+        {
+            "src": "**",
+            "use": "@vercel/static"
+        }
+    ]
+}

@@ -70,7 +70,7 @@ export const FeatureNode = ({
                     setHovered(false);
                 }}
             >
-                {/* Organic Torus Knot for cinematic complexity */}
+                {/* Organic Torus Knot (Original Look) */}
                 <torusKnotGeometry args={[0.5, 0.15, 64, 16]} />
                 <meshStandardMaterial
                     color={color}

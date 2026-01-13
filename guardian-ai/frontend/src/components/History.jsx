@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
+import { getApiUrl } from '../config/api';
 
 const History = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -15,7 +16,7 @@ const History = () => {
 
     const fetchData = async () => {
         try {
-            const res = await fetch('/api/history');
+            const res = await fetch(getApiUrl('/api/history'));
             const data = await res.json();
 
             if (Array.isArray(data)) {
@@ -46,7 +47,7 @@ const History = () => {
                             onClick={async () => {
                                 if (confirm("Are you sure you want to delete ALL history logs? This cannot be undone.")) {
                                     try {
-                                        await fetch('/api/history', { method: 'DELETE' });
+                                        await fetch(getApiUrl('/api/history'), { method: 'DELETE' });
                                         fetchData();
                                     } catch (e) {
                                         console.error(e);

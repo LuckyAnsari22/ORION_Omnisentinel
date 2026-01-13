@@ -1,6 +1,6 @@
-import { useMemo, Suspense } from 'react';
+import { useMemo, Suspense, useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, PerspectiveCamera } from '@react-three/drei';
+import { Environment, PerspectiveCamera, Stars, Html, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +35,40 @@ const CinematicCamera = () => {
     return null;
 };
 
+// Interactive Ring Controller
+const SystemRing = ({ children }: { children: React.ReactNode }) => {
+    const groupRef = useRef<THREE.Group>(null);
+    const targetRotation = useRef(0);
+
+    useFrame((_state, delta) => {
+        if (groupRef.current) {
+            // Smooth lerp to target rotation
+            groupRef.current.rotation.y = THREE.MathUtils.lerp(
+                groupRef.current.rotation.y,
+                targetRotation.current,
+                delta * 2 // Smoothing speed
+            );
+        }
+    });
+
+    useEffect(() => {
+        const handleWheel = (e: WheelEvent) => {
+            // Scroll down = Rotate Right, Scroll Up = Rotate Left
+            const speed = 0.001;
+            targetRotation.current += e.deltaY * speed;
+        };
+
+        window.addEventListener('wheel', handleWheel);
+        return () => window.removeEventListener('wheel', handleWheel);
+    }, []);
+
+    return (
+        <group ref={groupRef}>
+            {children}
+        </group>
+    );
+};
+
 // Main Scene Component
 export const Scene = () => {
     const navigate = useNavigate();
@@ -43,36 +77,37 @@ export const Scene = () => {
     const handleNodeClick = (systemKey: keyof typeof SYSTEMS) => {
         const system = SYSTEMS[systemKey];
         setTransitioning(true);
-        setCurrentSystem(system.id as any);
+        setCurrentSystem(system.id);
 
         setTimeout(() => {
-            navigate(system.url);
+            // "Link Mode": Open app in new tab (Original behavior requested)
+            if (system.url.startsWith('http')) {
+                window.open(system.url, '_blank');
+            } else {
+                navigate(system.url);
+            }
             setTransitioning(false);
         }, ANIMATION_CONFIG.fadeDuration);
     };
 
     return (
         <Canvas
-            dpr={1} // Peak Performance
+            dpr={[1, 2]}
             gl={{
                 antialias: true,
                 powerPreference: 'high-performance',
                 alpha: true
             }}
-            onCreated={({ gl }) => {
-                gl.domElement.addEventListener('webglcontextlost', (event) => {
-                    event.preventDefault();
-                    window.location.reload();
-                }, false);
-            }}
         >
-            <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={40} />
+            <PerspectiveCamera makeDefault position={[0, 0, 15]} fov={45} />
             <CinematicCamera />
 
             {/* Organic Lighting */}
-            <ambientLight intensity={0.2} />
-            <spotLight position={[10, 20, 10]} angle={0.15} penumbra={1} intensity={2} color="#00ffff" />
-            <pointLight position={[-10, -10, -10]} color="#4B0082" intensity={1} />
+            <ambientLight intensity={0.5} />
+            <spotLight position={[10, 20, 10]} angle={0.2} penumbra={1} intensity={2} color="#00ffff" />
+            <pointLight position={[-10, -10, -10]} color="#4B0082" intensity={1.5} />
+
+            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
 
             {/* Background Ocean of Energy */}
             <OrganicOcean />
@@ -80,21 +115,65 @@ export const Scene = () => {
             {/* Central Spirit Core - OmniSentinel */}
             <OmniSentinel />
 
-            {/* Integrated Portals */}
-            {Object.entries(SYSTEMS).map(([key, system]) => (
-                <FeatureNode
-                    key={key}
-                    systemId={system.id}
-                    position={system.position as [number, number, number]}
-                    color={system.color}
-                    label={system.name}
-                    icon={system.icon}
-                    onClick={() => handleNodeClick(key as any)}
-                />
-            ))}
+            {/* Rotatable System Ring - Tilted for Better Visibility */}
+            <SystemRing>
+                <group rotation={[Math.PI / 9, 0, 0]}> {/* 20 Degree Tilt */}
+                    {Object.entries(SYSTEMS).map(([key, system], index, array) => {
+                        const total = array.length;
+                        // Wider Layout to prevent overlap
+                        const radius = 12;
+                        const angle = (index / total) * Math.PI * 2;
+                        const x = Math.cos(angle) * radius;
+                        const z = Math.sin(angle) * radius;
+
+                        return (
+                            <group key={key}>
+                                {/* Connecting Neural Line */}
+                                <line>
+                                    <bufferGeometry>
+                                        <float32BufferAttribute
+                                            attach="attributes-position"
+                                            args={[new Float32Array([0, 0, 0, x, 0, z]), 3]}
+                                        />
+                                    </bufferGeometry>
+                                    <lineBasicMaterial attach="material" color={system.color} transparent opacity={0.15} linewidth={1} />
+                                </line>
+
+                                {/* Feature Node - Auto Billboard handled in component */}
+                                <FeatureNode
+                                    systemId={system.id}
+                                    position={[x, 0, z]}
+                                    color={system.color}
+                                    label={system.name}
+                                    icon={system.icon}
+                                    onClick={() => handleNodeClick(key as any)}
+                                />
+                            </group>
+                        );
+                    })}
+                </group>
+            </SystemRing>
+
+            {/* Beautiful Team Signature - Using HTML to avoid WebGL Text Crashes */}
+            <Html position={[0, -6, 0]} center transform>
+                <div style={{
+                    fontFamily: 'Orbitron, sans-serif',
+                    color: '#00ffff',
+                    fontSize: '24px',
+                    letterSpacing: '4px',
+                    textShadow: '0 0 10px #00ffff',
+                    textAlign: 'center',
+                    whiteSpace: 'nowrap'
+                }}>
+                    MADE BY TEAM OUTLIERS
+                </div>
+            </Html>
+
+            {/* OrbitControls for backup navigation if scroll fails */}
+            <OrbitControls enableZoom={false} enablePan={false} autoRotate={false} />
 
             <Suspense fallback={null}>
-                <Environment preset="night" />
+                <Environment preset="city" />
             </Suspense>
         </Canvas>
     );

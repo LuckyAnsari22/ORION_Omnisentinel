@@ -3,5 +3,7 @@ Pillow>=5.4.1
 PyYAML>=5.1.2
 flask
 flask_cors
-opencv-python
+opencv-python-headless
 tensorflow>=2.12.0
+gunicorn
+python-dotenv

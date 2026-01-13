@@ -1,0 +1,125 @@
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a1a00 0%, #000 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  padding: 1.5rem 2rem;
+  background: rgba(20, 20, 0, 0.8);
+  border-bottom: 1px solid rgba(255, 200, 0, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.brand h1 {
+  font-family: 'Orbitron', sans-serif;
+  margin: 0;
+  font-size: 1.8rem;
+  color: #ffcc00;
+  text-shadow: 0 0 15px rgba(255, 200, 0, 0.4);
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: #aa8800;
+  letter-spacing: 1px;
+}
+
+.dashboard {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.sidebar {
+  background: rgba(20, 20, 0, 0.4);
+  border: 1px solid rgba(255, 200, 0, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.metric-box {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #ffcc00;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-family: 'Consolas', monospace;
+  font-size: 1.8rem;
+  color: #fff;
+  font-weight: bold;
+}
+
+.feed-list {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  font-family: 'Consolas', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feed-item {
+  padding: 0.5rem;
+  background: rgba(255, 200, 0, 0.05);
+  border-radius: 4px;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.map-container {
+  background: #000;
+  border: 1px solid rgba(255, 200, 0, 0.2);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffcc00, #ff6600);
+  transition: width 0.3s ease;
+}
+
+.tooltip {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid #ffcc00;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}

@@ -1,0 +1,25 @@
+{
+    "name": "ai-assistant-platform",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "npm run build:frontend && npm run build:visualky && npm run build:guardian && npm run build:biosync && npm run build:danger && npm run build:emotion && npm run build:neuro && npm run build:phantom && npm run build:quantum && npm run build:reality && npm run build:silent && npm run build:sonic && npm run build:swarm",
+        "build:frontend": "cd frontend && npm install && npm run build",
+        "build:visualky": "cd visualky && npm install && npm run build",
+        "build:guardian": "cd guardian-ai/frontend && npm install && npm run build",
+        "build:biosync": "cd biosync-oracle && npm install && npm run build",
+        "build:danger": "cd danger-maps && npm install && npm run build",
+        "build:emotion": "cd emotionguard && npm install && npm run build",
+        "build:neuro": "cd neurosync-guardian && npm install && npm run build",
+        "build:phantom": "cd phantom-guardian && npm install && npm run build",
+        "build:quantum": "cd quantum-mesh && npm install && npm run build",
+        "build:reality": "cd reality-anchor && npm install && npm run build",
+        "build:silent": "cd silent-witness && npm install && npm run build",
+        "build:sonic": "cd sonicguard && npm install && npm run build",
+        "build:swarm": "cd swarm-intelligence && npm install && npm run build",
+        "dev": "echo Use launch-all.bat for development"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

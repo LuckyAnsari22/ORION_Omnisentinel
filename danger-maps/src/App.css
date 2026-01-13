@@ -1,0 +1,120 @@
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.header {
+  padding: 1rem 2rem;
+  background: rgba(30, 0, 0, 0.9);
+  border-bottom: 2px solid #ff0000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 20;
+}
+
+.brand h1 {
+  font-family: 'Black Ops One', sans-serif;
+  /* Fallback to impact if font missing */
+  font-weight: 900;
+  color: #ff0000;
+  margin: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.overlay-panel {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 1000;
+  background: rgba(10, 0, 0, 0.9);
+  border: 1px solid #ff0000;
+  border-radius: 8px;
+  width: 320px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+}
+
+.panel-header {
+  padding: 1rem;
+  background: rgba(255, 0, 0, 0.1);
+  border-bottom: 1px solid #ff0000;
+  color: #ff4444;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.incident-list {
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.incident-card {
+  background: #1a0505;
+  border-left: 3px solid #666;
+  padding: 0.8rem;
+  font-size: 0.85rem;
+  color: #ddd;
+}
+
+.incident-card.high {
+  border-color: #ff0000;
+}
+
+.incident-card.medium {
+  border-color: #ff8800;
+}
+
+.incident-card.low {
+  border-color: #00ff00;
+}
+
+.incident-title {
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.incident-time {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.legend {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  color: #ccc;
+}
