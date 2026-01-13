@@ -358,10 +358,17 @@ export class AudioThreatDetector {
         if (!this.analyser) return 0;
 
         const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-        this.analyser.getByteFrequencyData(dataArray);
+        this.analyser.getByteTimeDomainData(dataArray);
 
-        const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
-        return (average / 255) * 100;
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const normalized = (dataArray[i] - 128) / 128; // Center at 0
+            sum += normalized * normalized;
+        }
+
+        const rms = Math.sqrt(sum / dataArray.length);
+        // Scale up for visibility (RMS is usually small)
+        return Math.min(100, rms * 400);
     }
 
     stopListening() {

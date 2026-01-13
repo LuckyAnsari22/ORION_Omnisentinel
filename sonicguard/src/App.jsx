@@ -54,7 +54,7 @@ function App() {
       const interval = setInterval(() => {
         const level = detector.getAudioLevel();
         setAudioLevel(level);
-      }, 50);
+      }, 20);
 
       return () => clearInterval(interval);
     }
