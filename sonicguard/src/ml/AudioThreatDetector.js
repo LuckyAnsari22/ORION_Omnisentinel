@@ -26,8 +26,10 @@ export class AudioThreatDetector {
 
     async initialize() {
         try {
-            // Initialize TensorFlow.js
-            await tf.ready();
+            // Initialize TensorFlow.js only if not already ready
+            if (!tf.getBackend()) {
+                await tf.ready();
+            }
 
             // Create speech command recognizer
             this.recognizer = speechCommands.create('BROWSER_FFT');
