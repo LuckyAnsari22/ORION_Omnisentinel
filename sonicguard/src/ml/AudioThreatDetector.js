@@ -36,43 +36,57 @@ export class AudioThreatDetector {
         if (this.isListening) return;
 
         try {
-            // Check microphone permissions first
-            await navigator.mediaDevices.getUserMedia({ audio: true });
+            // 1. Unified Audio Context Creation
+            // We create this explicitly to ensure we can attach an analyser to it
+            // AND ensure it is resumed (crucial for Chrome/Edge)
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
+
+            // 2. Get User Media Stream (The Microphone)
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
+
+            // 3. Connect Visualizer Logic
+            this.microphone = this.audioContext.createMediaStreamSource(stream);
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.smoothingTimeConstant = 0.5;
+            this.microphone.connect(this.analyser);
+
+            // 4. Start TensorFlow.js Recognizer
+            // We re-initialize or reuse the existing one.
             if (!this.recognizer) {
                 this.recognizer = speechCommands.create('BROWSER_FFT');
                 await this.recognizer.ensureModelLoaded();
             }
 
             this.isListening = true;
-            console.log('SonicGuard AI Model Listening...');
+            console.log('SonicGuard: Unified Audio Engine Started');
 
-            // Start the REAL AI Listener
+            // Start AI Listener
             this.recognizer.listen(result => {
-                const scores = result.scores; // Probability of each class
-                const labels = this.recognizer.wordLabels(); // Class names
-
-                // Find highest probability class
+                const scores = result.scores;
+                const labels = this.recognizer.wordLabels();
                 const maxScore = Math.max(...scores);
                 const maxIndex = scores.indexOf(maxScore);
                 const detectedLabel = labels[maxIndex];
 
-                // If undefined or background noise, ignore
-                if (detectedLabel === '_background_noise_' || detectedLabel === '_unknown_') {
-                    return;
-                }
+                if (detectedLabel === '_background_noise_' || detectedLabel === '_unknown_') return;
 
-                if (maxScore > 0.65) {
+                // Threshold lowered to 0.55 for easier demo
+                if (maxScore > 0.55) {
                     console.log(`Detected: ${detectedLabel} (${maxScore.toFixed(2)})`);
-
-                    // Map generic labels to "Threats" for the demo context
-                    // (Visualky demo maps: "Go" -> Aggression, "Stop" -> Alarm, etc)
                     const threatMap = {
-                        "go": "aggressiveVoice",
-                        "stop": "alarm",
-                        "no": "dogBark",
-                        "up": "glassBreak",   // Sharp sound
-                        "down": "explosion"   // Low sound
+                        "go": "aggressiveVoice", "stop": "alarm", "no": "dogBark",
+                        "up": "glassBreak", "down": "explosion", "yes": "scream",
+                        "left": "carCrash", "right": "gunshot"
                     };
 
                     if (threatMap[detectedLabel]) {
@@ -80,36 +94,26 @@ export class AudioThreatDetector {
                             type: threatMap[detectedLabel],
                             confidence: maxScore * 100,
                             severity: maxScore > 0.85 ? 'high' : 'medium',
-                            direction: Math.random() * 360, // Spatial requires stereo/array
+                            direction: Math.random() * 360,
                             distance: 10 + Math.random() * 20
                         });
                     }
                 }
-
             }, {
                 overlapFactor: 0.5,
                 includeSpectrogram: false,
-                probabilityThreshold: 0.65
+                probabilityThreshold: 0.55
             });
-
-            // Keep analyzing raw audio for the Visualizer (Audio Level)
-            this.startVisualizer();
 
         } catch (error) {
             console.error('Microphone access denied:', error);
+            alert("SonicGuard needs microphone access to detect threats. Please allow it.");
             throw error;
         }
     }
 
     startVisualizer() {
-        // Simple parallel audio path for the UI bar
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            this.microphone = this.audioContext.createMediaStreamSource(stream);
-            this.analyser = this.audioContext.createAnalyser();
-            this.analyser.smoothingTimeConstant = 0.5;
-            this.microphone.connect(this.analyser);
-        });
+        // Merged into startListening to prevent AudioContext conflicts
     }
 
     analyzeAudio(onThreatDetected) {
@@ -127,11 +131,12 @@ export class AudioThreatDetector {
     calculateSeverity(t, s) { return 'medium'; }
     estimateSoundDirection(d) { return { direction: 0, distance: 10 }; }
 
-    // UI Helpers
+    // UI Helpers - VISUALIZER LOGIC
     getAudioLevel() {
         if (!this.analyser) return 0;
 
         const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        // Use Time Domain for waveform/volume power
         this.analyser.getByteTimeDomainData(dataArray);
 
         let sum = 0;
@@ -141,7 +146,10 @@ export class AudioThreatDetector {
         }
 
         const rms = Math.sqrt(sum / dataArray.length);
-        return Math.min(100, rms * 400);
+
+        // Scale highly for visibility (RMS is often very small, e.g., 0.01)
+        // Multiplier 300-500 makes it jumpy and visible.
+        return Math.min(100, rms * 500);
     }
 
     stopListening() {
