@@ -67,14 +67,21 @@ function App() {
     processingRef.current = requestAnimationFrame(update);
   };
 
+  /* Improved Simulation Logic */
+  const currentBpmRef = useRef(75);
+  const phaseRef = useRef(0);
+
   const processFrame = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const ctx = canvasRef.current.getContext('2d');
     const width = videoRef.current.videoWidth;
     const height = videoRef.current.videoHeight;
-    canvasRef.current.width = width;
-    canvasRef.current.height = height;
+
+    // Only set dimensions if changed to avoid flickering
+    if (canvasRef.current.width !== width) canvasRef.current.width = width;
+    if (canvasRef.current.height !== height) canvasRef.current.height = height;
+
     ctx.drawImage(videoRef.current, 0, 0, width, height);
 
     // Draw Overlay
@@ -86,17 +93,41 @@ function App() {
     ctx.lineWidth = 2;
     ctx.strokeRect(roiX, roiY, roiSize, roiSize);
 
-    // Simulating signal processing for demo stability
+    // Dynamic Simulation aligned with BPM
     const time = Date.now();
-    const simulatedPulse = Math.sin(time / 150) * 5;
 
-    setGraphData(prev => [...prev.slice(1), 50 + simulatedPulse + (Math.random() * 5)]);
+    // Smoothly wander BPM
+    if (!isCalibrating && time - lastProcess.current > 2000) {
+      // Gentle fluctuation +/- 2 beats
+      const change = (Math.random() - 0.5) * 4;
+      let newBpm = currentBpmRef.current + change;
+      // Clamp to realistic resting range
+      newBpm = Math.max(60, Math.min(100, newBpm));
+      currentBpmRef.current = newBpm;
 
-    if (!isCalibrating && time - lastProcess.current > 1000) {
-      setBpm(Math.round(70 + Math.random() * 10)); // Variable synthetic HR
-      setHrv(Math.round(40 + Math.random() * 20)); // Variable synthetic HRV
+      setBpm(Math.round(newBpm));
+      setHrv(Math.round(10000 / newBpm * (0.1 + Math.random() * 0.05))); // Inverse correlation to HR roughly
       lastProcess.current = time;
     }
+
+    // Generate Pulse Waveform matching the BPM
+    // Frequency = BPM / 60
+    const freq = currentBpmRef.current / 60;
+    phaseRef.current += (freq * 2 * Math.PI) / 60; // Assuming ~60fps
+
+    // PQRST-like complex simulation (simplified sine mix)
+    const t = phaseRef.current;
+
+    // Base composite wave
+    const pulse =
+      Math.sin(t) * 10 +           // Main wave
+      Math.sin(t * 2) * 5 +        // Harmonic
+      (Math.random() * 2);         // Noise
+
+    // Graph baseline matches the BPM value for visual consistency
+    const displayValue = currentBpmRef.current + pulse;
+
+    setGraphData(prev => [...prev.slice(1), displayValue]);
   };
 
   const consultGemini = async () => {
